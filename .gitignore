@@ -1,3 +1,4 @@
 .idea/
 venv/
+media/persons/
 db.sqlite3
