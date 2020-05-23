@@ -3,44 +3,90 @@ from django.db import models
 
 class Person(models.Model):
     gender_choices = [
-        ('male', 'male'),
-        ('female', 'female')
+        ('male', 'мужской'),
+        ('female', 'женский')
     ]
 
-    name = models.CharField(max_length=300)
-    surname = models.CharField(max_length=300)
-    patronymic = models.CharField(max_length=300, null=True, blank=True)
-    gender = models.CharField(max_length=10, choices=gender_choices)
+    month_choices = [
+        (None, "неизвестен"),
+        (1, "Январь"),
+        (2, "Февраль"),
+        (3, "Март"),
+        (4, "Апрель"),
+        (5, "Май"),
+        (6, "Июнь"),
+        (7, "Июль"),
+        (8, "Август"),
+        (9, "Сентябрь"),
+        (10, "Октябрь"),
+        (11, "Ноябрь"),
+        (12, "Декабрь")
+    ]
 
-    birth_location = models.ForeignKey('Location', on_delete=models.SET_NULL, null=True, blank=True, related_name='persons_born')
-    year_of_birth = models.IntegerField(null=True, blank=True)
-    month_of_birth = models.PositiveSmallIntegerField(null=True, blank=True)
-    day_of_birth = models.PositiveSmallIntegerField(null=True, blank=True)
+    name = models.CharField("Имя", max_length=300)
+    surname = models.ForeignKey('Surname', verbose_name="Фамилия", on_delete=models.CASCADE, related_name="persons")
+    patronymic = models.CharField("Отчество", max_length=300, null=True, blank=True)
+    gender = models.CharField("Пол", max_length=10, choices=gender_choices)
 
-    burial_location = models.ForeignKey('Location', on_delete=models.SET_NULL, null=True, blank=True, related_name='persons_buried')
-    year_of_death = models.IntegerField(null=True, blank=True)
-    month_of_death = models.PositiveSmallIntegerField(null=True, blank=True)
-    day_of_death = models.PositiveSmallIntegerField(null=True, blank=True)
+    birth_location = models.ForeignKey('Location', verbose_name="Место рождения",on_delete=models.SET_NULL, null=True, blank=True, related_name='persons_born')
+    year_of_birth = models.IntegerField("Год рождения", null=True, blank=True)
+    month_of_birth = models.PositiveSmallIntegerField("Месяц рождения", choices=month_choices, null=True, blank=True)
+    day_of_birth = models.PositiveSmallIntegerField("День рождения", null=True, blank=True)
 
-    living_locations = models.ManyToManyField('Location', null=True, blank=True, related_name='persons_living')
+    burial_location = models.ForeignKey('Location', verbose_name="Место захоронения", on_delete=models.SET_NULL, null=True, blank=True, related_name='persons_buried')
+    year_of_death = models.IntegerField("Год смерти", null=True, blank=True)
+    month_of_death = models.PositiveSmallIntegerField("Месяц смерти", choices=month_choices, null=True, blank=True)
+    day_of_death = models.PositiveSmallIntegerField("День смерти", null=True, blank=True)
 
-    additional_information = models.TextField(null=True, blank=True)
+    living_locations = models.ManyToManyField('Location', verbose_name="Места жительства", blank=True, related_name='persons_living')
 
-    mother = models.ForeignKey('Person', on_delete=models.SET_NULL, null=True, blank=True, related_name='kids_mother')
-    father = models.ForeignKey('Person', on_delete=models.SET_NULL, null=True, blank=True, related_name='kids_father')
-    spouse = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='spouse_reverse')
+    additional_information = models.TextField("Дополнительная информация", null=True, blank=True)
 
-    photo = models.ImageField(upload_to="persons/", null=True, blank=True)
+    mother = models.ForeignKey('Person', verbose_name="Мать", on_delete=models.SET_NULL, null=True, blank=True, related_name='kids_mother')
+    father = models.ForeignKey('Person', verbose_name="Отец", on_delete=models.SET_NULL, null=True, blank=True, related_name='kids_father')
+    spouse = models.ForeignKey('self', verbose_name="Супруг(-а)", on_delete=models.SET_NULL, null=True, blank=True, related_name='spouse_reverse')
+    ex_spouses = models.ManyToManyField('Person', verbose_name="Бывшие супруги", blank=True, related_name='ex_spouses_reverse')
+
+    photo = models.ImageField("Фото", upload_to="persons/", null=True, blank=True)
 
     creation_date = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        verbose_name = "Персона"
+        verbose_name_plural = "Персоны"
+
     def __str__(self):
-        return f"{self.name} {self.surname}"
+        full_name = ""
+        if self.gender == "male":
+            full_name += self.surname.male_form
+        else:
+            full_name += self.surname.female_form
+        full_name += " " + self.name
+        if self.patronymic is not None:
+            full_name += " " + self.patronymic
+
+        return full_name
 
 
 class Location(models.Model):
-    name = models.CharField(max_length=500, unique=True)
-    description = models.TextField(null=True, blank=True)
+    name = models.CharField("Название", max_length=500, unique=True)
+    description = models.TextField("Описание", null=True, blank=True)
+
+    class Meta:
+        verbose_name = "Локация"
+        verbose_name_plural = "Локации"
 
     def __str__(self):
         return self.name
+
+
+class Surname(models.Model):
+    male_form = models.CharField("Мужская форма", max_length=300)
+    female_form = models.CharField("Женская форма", max_length=300)
+
+    class Meta:
+        verbose_name = "Фамилия"
+        verbose_name_plural = "Фамилии"
+
+    def __str__(self):
+        return f"{self.male_form} / {self.female_form}"
