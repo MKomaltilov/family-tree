@@ -1,6 +1,6 @@
 Hi there
 
-this is my first app based on Django. I think a lot of mistakes a shitcode be there, but I will make it better and better.
+this is my first app based on Django. I think a lot of mistakes and shitcode be there, but I will make it better and better.
 
 Idea is a simple family-tree catalogue-stylish. I got request for this app from my father, this is reason why by default all labels will be on russian.
 
