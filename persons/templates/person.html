@@ -1,4 +1,18 @@
 {% extends 'base.html' %}
 {% block content %}
-    {{ person }}
+<a href="{% url 'persons:index' %}"><<< назад</a>
+<br>{{ person }}
+<br>
+{% if person.spouse %}<br>Супруг(-а): <a href="{% url 'persons:get_person' person.spouse.id %}">{{ person.spouse }}</a>{% endif %}
+{% if person.mother %}<br>Мать: <a href="{% url 'persons:get_person' person.mother.id %}">{{ person.mother }}</a>{% endif %}
+{% if person.father %}<br>Отец: <a href="{% url 'persons:get_person' person.father.id %}">{{ person.father }}</a>{% endif %}
+<br>
+{% if person.get_kids %}
+<br>Дети:
+<ul>
+    {% for child in person.get_kids %}
+    <a href="{% url 'persons:get_person' child.id %}">{{ child }}</a>
+    {% endfor %}
+</ul>
+{% endif %}
 {% endblock content %}

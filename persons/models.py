@@ -56,6 +56,9 @@ class Person(models.Model):
         verbose_name = "Персона"
         verbose_name_plural = "Персоны"
 
+    def get_kids(self):
+        return (*self.kids_mother.all(), *self.kids_father.all())
+
     def __str__(self):
         full_name = ""
         if self.gender == "male":
