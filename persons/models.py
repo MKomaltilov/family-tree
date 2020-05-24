@@ -25,6 +25,7 @@ class Person(models.Model):
 
     name = models.CharField("Имя", max_length=300)
     surname = models.ForeignKey('Surname', verbose_name="Фамилия", on_delete=models.CASCADE, related_name="persons")
+    ex_surnames = models.ManyToManyField('Surname', verbose_name="Прошлые фамилии", blank=True, related_name="ex_persons")
     patronymic = models.CharField("Отчество", max_length=300, null=True, blank=True)
     gender = models.CharField("Пол", max_length=10, choices=gender_choices)
 

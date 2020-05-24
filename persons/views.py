@@ -9,3 +9,11 @@ def index(request):
         'persons': persons
     }
     return render(request, 'index.html', context)
+
+
+def get_person(request, person_id):
+    person = Person.objects.get(id=person_id)
+    context = {
+        'person': person
+    }
+    return render(request, 'person.html', context)
