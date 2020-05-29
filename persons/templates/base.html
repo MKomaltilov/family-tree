@@ -1,10 +1,18 @@
 <!DOCTYPE html>
+{% load bootstrap4 %}
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Family Trees</title>
+    {% bootstrap_css %}
+    {% bootstrap_javascript jquery='full' %}
 </head>
 <body>
+<nav class="navbar navbar-dark bg-dark">Family Tree</nav>
+<div class="container pt-3">
+
     {% block content %}{% endblock content %}
+</div>
+
 </body>
 </html>
