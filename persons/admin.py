@@ -32,4 +32,4 @@ class PersonAdmin(admin.ModelAdmin):
         })
     )
 
-    filter_horizontal = ()
+    filter_horizontal = ('ex_surnames', 'ex_spouses', 'living_locations')
