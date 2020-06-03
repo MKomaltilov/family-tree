@@ -1,9 +1,9 @@
-from django import forms
+from django.forms import ModelForm, Select, TextInput
 
 from .models import Person
 
 
-class PersonForm(forms.ModelForm):
+class PersonForm(ModelForm):
     class Meta:
         model = Person
         fields = ['name',
@@ -32,3 +32,9 @@ class PersonForm(forms.ModelForm):
                   'ex_spouses',
                   'ex_surnames'
                   ]
+        widgets = {
+            'name': TextInput(attrs={'class': 'form-control'}),
+            'surname': Select(attrs={'class': 'form-control'}),
+            'patronymic': TextInput(attrs={'class': 'form-control'}),
+            'spouse': Select(attrs={'class': 'form-control'})
+        }

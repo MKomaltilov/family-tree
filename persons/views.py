@@ -27,11 +27,11 @@ def add_person(request):
         form = PersonForm(data=request.POST)
         if form.is_valid():
             person = form.save(commit=False)
+            person.save()
             if person.spouse is not None:
                 spouse = Person.objects.get(pk=person.spouse.id)
                 spouse.spouse = person
                 spouse.save()
-            person.save()
             return redirect('persons:index')
 
     context = {'form': form}

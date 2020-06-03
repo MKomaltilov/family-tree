@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models.signals import post_save, pre_save
 
 
 class Person(models.Model):
@@ -25,28 +26,36 @@ class Person(models.Model):
 
     name = models.CharField("Имя", max_length=300)
     surname = models.ForeignKey('Surname', verbose_name="Фамилия", on_delete=models.CASCADE, related_name="persons")
-    ex_surnames = models.ManyToManyField('Surname', verbose_name="Прошлые фамилии", blank=True, related_name="ex_persons")
+    ex_surnames = models.ManyToManyField('Surname', verbose_name="Прошлые фамилии", blank=True,
+                                         related_name="ex_persons")
     patronymic = models.CharField("Отчество", max_length=300, null=True, blank=True)
     gender = models.CharField("Пол", max_length=10, choices=gender_choices)
 
-    birth_location = models.ForeignKey('Location', verbose_name="Место рождения",on_delete=models.SET_NULL, null=True, blank=True, related_name='persons_born')
+    birth_location = models.ForeignKey('Location', verbose_name="Место рождения", on_delete=models.SET_NULL, null=True,
+                                       blank=True, related_name='persons_born')
     year_of_birth = models.IntegerField("Год рождения", null=True, blank=True)
     month_of_birth = models.PositiveSmallIntegerField("Месяц рождения", choices=month_choices, null=True, blank=True)
     day_of_birth = models.PositiveSmallIntegerField("День рождения", null=True, blank=True)
 
-    burial_location = models.ForeignKey('Location', verbose_name="Место захоронения", on_delete=models.SET_NULL, null=True, blank=True, related_name='persons_buried')
+    burial_location = models.ForeignKey('Location', verbose_name="Место захоронения", on_delete=models.SET_NULL,
+                                        null=True, blank=True, related_name='persons_buried')
     year_of_death = models.IntegerField("Год смерти", null=True, blank=True)
     month_of_death = models.PositiveSmallIntegerField("Месяц смерти", choices=month_choices, null=True, blank=True)
     day_of_death = models.PositiveSmallIntegerField("День смерти", null=True, blank=True)
 
-    living_locations = models.ManyToManyField('Location', verbose_name="Места жительства", blank=True, related_name='persons_living')
+    living_locations = models.ManyToManyField('Location', verbose_name="Места жительства", blank=True,
+                                              related_name='persons_living')
 
     additional_information = models.TextField("Дополнительная информация", null=True, blank=True)
 
-    mother = models.ForeignKey('Person', verbose_name="Мать", on_delete=models.SET_NULL, null=True, blank=True, related_name='kids_mother')
-    father = models.ForeignKey('Person', verbose_name="Отец", on_delete=models.SET_NULL, null=True, blank=True, related_name='kids_father')
-    spouse = models.ForeignKey('self', verbose_name="Супруг(-а)", on_delete=models.SET_NULL, null=True, blank=True, related_name='spouse_reverse')
-    ex_spouses = models.ManyToManyField('Person', verbose_name="Бывшие супруги", blank=True, related_name='ex_spouses_reverse')
+    mother = models.ForeignKey('Person', verbose_name="Мать", on_delete=models.SET_NULL, null=True, blank=True,
+                               related_name='kids_mother')
+    father = models.ForeignKey('Person', verbose_name="Отец", on_delete=models.SET_NULL, null=True, blank=True,
+                               related_name='kids_father')
+    spouse = models.ForeignKey('self', verbose_name="Супруг(-а)", on_delete=models.SET_NULL, null=True, blank=True,
+                               related_name='spouse_reverse')
+    ex_spouses = models.ManyToManyField('Person', verbose_name="Бывшие супруги", blank=True,
+                                        related_name='ex_spouses_reverse')
 
     photo = models.ImageField("Фото", upload_to="persons/", null=True, blank=True)
 
@@ -71,6 +80,29 @@ class Person(models.Model):
 
         return full_name
 
+    def before_save(self):
+        if self.spouse is None:
+            print('spouse is None!')
+            spouse_person = Person.objects.get(spouse=self)
+            print(spouse_person.spouse)
+            spouse_person.spouse = None
+            print(spouse_person.spouse)
+            spouse_person.save()
+
+    def after_save(self):
+        if self.spouse is not None:
+            spouse_person = Person.objects.get(pk=self.spouse.id)
+            if spouse_person.spouse != self:
+                spouse_person.spouse = self
+                spouse_person.save()
+        else:
+            try:
+                spouse_person = Person.objects.get(spouse=self)
+                spouse_person.spouse = None
+                spouse_person.save()
+            except Exception:
+                pass
+
 
 class Location(models.Model):
     name = models.CharField("Название", max_length=500, unique=True)
@@ -94,3 +126,14 @@ class Surname(models.Model):
 
     def __str__(self):
         return f"{self.male_form} / {self.female_form}"
+
+
+def person_saved(sender, instance, *args, **kwargs):
+    instance.after_save()
+
+
+def person_before_save(sender, instance, *args, **kwargs):
+    instance.before_save()
+
+
+post_save.connect(person_saved, sender=Person)

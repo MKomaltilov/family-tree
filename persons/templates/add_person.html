@@ -1,8 +1,19 @@
 {% extends 'base.html' %}
+
 {% block content %}
     <form action="{% url 'persons:add_person' %}" method="post">
+        {{ form.non_field_errors }}
         {% csrf_token %}
-        {{ form.as_p }}
-        <button name="submit">add person</button>
+        <div class="from-group row">
+
+            {{ form.name }}
+            {{ form.surname }}
+            {{ form.patronymic }}
+        </div>
+        <div class="form-group">
+            {{ form.spouse }}
+        </div>
+
+        <button name="submit" class="btn btn-primary">add person</button>
     </form>
 {% endblock content %}
