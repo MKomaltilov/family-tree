@@ -80,15 +80,6 @@ class Person(models.Model):
 
         return full_name
 
-    def before_save(self):
-        if self.spouse is None:
-            print('spouse is None!')
-            spouse_person = Person.objects.get(spouse=self)
-            print(spouse_person.spouse)
-            spouse_person.spouse = None
-            print(spouse_person.spouse)
-            spouse_person.save()
-
     def after_save(self):
         if self.spouse is not None:
             spouse_person = Person.objects.get(pk=self.spouse.id)
@@ -130,10 +121,6 @@ class Surname(models.Model):
 
 def person_saved(sender, instance, *args, **kwargs):
     instance.after_save()
-
-
-def person_before_save(sender, instance, *args, **kwargs):
-    instance.before_save()
 
 
 post_save.connect(person_saved, sender=Person)
