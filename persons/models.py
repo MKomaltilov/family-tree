@@ -1,5 +1,4 @@
 from django.db import models
-from django.db.models.signals import post_save
 
 
 class Person(models.Model):
@@ -54,7 +53,7 @@ class Person(models.Model):
                                related_name='kids_father')
     spouse = models.ForeignKey('self', verbose_name="Супруг(-а)", on_delete=models.SET_NULL, null=True, blank=True,
                                related_name='spouse_reverse')
-    ex_spouses = models.ManyToManyField('Person', verbose_name="Бывшие супруги", blank=True,
+    ex_spouses = models.ManyToManyField('Person', symmetrical=True, verbose_name="Бывшие супруги", blank=True,
                                         related_name='ex_spouses_reverse')
 
     photo = models.ImageField("Фото", upload_to="persons/", null=True, blank=True)
@@ -80,7 +79,8 @@ class Person(models.Model):
 
         return full_name
 
-    def after_save(self):
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
         if self.spouse is not None:
             spouse_person = Person.objects.get(pk=self.spouse.id)
             if spouse_person.spouse != self:
@@ -118,9 +118,3 @@ class Surname(models.Model):
     def __str__(self):
         return f"{self.male_form} / {self.female_form}"
 
-
-def person_saved(sender, instance, *args, **kwargs):
-    instance.after_save()
-
-
-post_save.connect(person_saved, sender=Person)
